@@ -2,29 +2,48 @@
 # 1. Из текста определяет ФИО и срок действия справки
 # 2. По ссылке на госуслуги возвращает дату рождения, инициалы и срок действия вакцины или иммунитета
 
-from datetime import datetime
 from typing import Dict
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 import re
+import logging
+import traceback
+import qr_code
 
-document_type = {'vactination': 1,
-                 'antitela': 2,  # болезнь перенесена или есть антитела
-                 'modotvod': 3}  # приложена справка
 
+logging.basicConfig(filename="logging.log", level=logging.INFO)
 
 def get_vactination_info(text: str) -> Dict[str, str]:
     '''
         Возвращает Инициалы, до какого числа действует и дату рождения
 
         >>> get_vactination_info('RUS Сертификат вакцинации от COVID-19 Действителен № 9160 0000 1895 1163 Действует до: 08.07.2022 Л******* Р***** Н******** Дата рождения: 18.06.1994 Паспорт: 92** ***711 Закрыть')
-        {'ФИО': 'ЛРН', 'до': '08.07.2022', 'день рождения': '18.06.1994'}
+        {'ФИО': 'ЛРН', 'Дата действия': '08.07.2022', 'День рождения': '18.06.1994'}
         >>> get_vactination_info('RUS Сведения о перенесенном заболевании COVID-19 Переболел № 8161 0321 2161 6110 Дата выздоровления: 14.04.2021 Действует до: 14.04.2022 м*********** и***** Н******** Паспорт: 92** ***764 Дата рождения: 09.08.1957 Закрыть')
-        {'ФИО': 'МИН', 'до': '14.04.2022', 'день рождения': '09.08.1957'}
+        {'ФИО': 'МИН', 'Дата действия': '14.04.2022', 'День рождения': '09.08.1957'}
+        >>> get_vactination_info('RUS Сертификат COVID-19 Действителен № 1000 0844 1623 0689 Действует до 02.11.2022 Ц******* Е**** И******* Дата рождения: 05.08.1968 Паспорт: 92** ***293 Закрыть')
+        {'ФИО': 'ЦЕИ', 'Дата действия': '02.11.2022', 'День рождения': '05.08.1968'}
     '''
-    return {'ФИО': ''.join([i[0] for i in re.findall('[а-я]\*{2,}', text.lower())]).upper(), 
-            'до': re.search('Действует до: [0-9]{2}.[0-9]{2}.[0-9]{4}', text)[0][14:],
-            'день рождения': re.search('(Дата рождения: )[0-9]{2}.[0-9]{2}.[0-9]{4}', text)[0][15:]}
+    res = {}
+
+    for key, reg_exp in zip(['ФИО', 'Дата действия', 'День рождения'],
+                   ['[а-я]\*{2,}',
+                    'действует [до:]+ [0-9]{2}.[0-9]{2}.[0-9]{4}',
+                    'дата рождения: [0-9]{2}.[0-9]{2}.[0-9]{4}']):
+        
+        try:
+            search_res = re.findall(reg_exp, text.lower())
+
+            if key == 'ФИО':
+                search_res = ''.join([i[0] for i in search_res]).upper()
+            elif key in ['Дата действия', 'День рождения']:
+                search_res = re.findall('[0-9]{2}.[0-9]{2}.[0-9]{4}', search_res[0])[0]
+            
+            res[key] = search_res
+        except:
+            logging.error(f'Error while getting {key} from the text: {text}\n{traceback}')
+
+    return res
 
 
 def get_html_text(url: str) -> str:
@@ -38,7 +57,7 @@ def get_html_text(url: str) -> str:
     '''
     driver = webdriver.Chrome(ChromeDriverManager().install())
     driver.get(url) # аналог страницы браузера Chrome
-    driver.set_page_load_timeout(10)
+    driver.set_page_load_timeout(45)
     driver.maximize_window()
     driver.implicitly_wait(2)
 
@@ -62,18 +81,42 @@ def is_valid_qr_code(url: str) ->  bool:
     return url.startswith('https://www.gosuslugi.ru/')
 
 
-def get_document_type() -> str:
+def parse_document(file_name: str) -> Dict[str, str]:
     '''
-        Возвращает тип документа из document_type
+        Возвращает:
+            фио владельца
+            дата рождения владельца
+            дата окончания действия
     '''
-    pass
+    url_from_qr_code = qr_code.parse_file_with_qr_code(file_name)
+    result = {}
+
+    if is_valid_qr_code(url_from_qr_code):
+        logging.info(f'URL from qr-code: {url_from_qr_code}')
+        inner_text = get_html_text(url_from_qr_code)
+        result = get_vactination_info(inner_text)
+    else:
+        logging.info('Unable to get url from QR-code')
+
+    return result
 
 
-def get_date(text: str) -> datetime:
-    '''
-        Возвращает 
-            1. Дату вакцианции, если вакцинирован
-            2. Дату выздоровления, если перенесено заболевание covid
-            3. Дату результата анализа, если тест на антитела
-    '''                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-    pass
+if __name__ == '__main__':
+    import os
+    directory = 'data\certifacates'
+
+    for subdir, dirs, files in os.walk(directory):
+        for file in files:
+            #print os.path.join(subdir, file)
+            filepath = subdir + os.sep + file
+
+            if filepath.split('.')[-1] in ['jpg', 'pdf', 'png', 'jfif', 'docx']:
+                logging.info(f'Cur document: {os.path.join(directory, filepath)}')
+                
+                res = parse_document(filepath)
+                print(os.path.join(directory, filepath))
+                
+                print(res)
+                logging.info(f'RESULT: {res}')
+            else:
+                print(f'Unknown file format: {filepath}')

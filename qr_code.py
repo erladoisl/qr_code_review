@@ -10,6 +10,8 @@ from pyzbar.pyzbar import decode
 from pdf2image import convert_from_path
 
 
+logging.basicConfig(filename="logging.log", level=logging.INFO)
+
 # cкорее всего не нужно будет
 def get_qr_code(file_name, res_file_name: str = 'data\qr.jpg') -> np.ndarray:
     '''
@@ -112,4 +114,19 @@ def parse_file_with_qr_code(file_name: str):
 
 
 if __name__ == '__main__':
-    print(parse_file_with_qr_code('data\certifacates\\antitela\\6c1ba0866e006478db187881ea670bfc.jpg'))
+    directory = 'data\certifacates'
+
+    for subdir, dirs, files in os.walk(directory):
+        for file in files:
+            #print os.path.join(subdir, file)
+            filepath = subdir + os.sep + file
+
+            if filepath.split('.')[-1] in ['jpg', 'pdf', 'png', 'jfif', 'docx']:
+                print(os.path.join(directory, filepath))
+                
+                print(parse_file_with_qr_code(filepath))
+            else:
+                print(f'Unknown file format: {filepath}')
+
+   
+    # print(parse_file_with_qr_code('data\certifacates\\antitela\\6c1ba0866e006478db187881ea670bfc.jpg'))
