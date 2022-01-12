@@ -10,36 +10,34 @@ import logging
 import traceback
 import qr_code
 
-
-logging.basicConfig(filename="logging.log", level=logging.INFO)
+logging.basicConfig(filename="logging.log", level=logging.INFO, encoding='utf-8')
 
 def get_vactination_info(text: str) -> Dict[str, str]:
     '''
         Возвращает Инициалы, до какого числа действует и дату рождения
 
         >>> get_vactination_info('RUS Сертификат вакцинации от COVID-19 Действителен № 9160 0000 1895 1163 Действует до: 08.07.2022 Л******* Р***** Н******** Дата рождения: 18.06.1994 Паспорт: 92** ***711 Закрыть')
-        {'ФИО': 'ЛРН', 'Дата действия': '08.07.2022', 'День рождения': '18.06.1994'}
+        {'Тип сертификата': ' Сертификат вакцинации от COVID-19', 'ФИО': 'ЛРН', 'Дата действия': '08.07.2022', 'День рождения': '18.06.1994'}
         >>> get_vactination_info('RUS Сведения о перенесенном заболевании COVID-19 Переболел № 8161 0321 2161 6110 Дата выздоровления: 14.04.2021 Действует до: 14.04.2022 м*********** и***** Н******** Паспорт: 92** ***764 Дата рождения: 09.08.1957 Закрыть')
-        {'ФИО': 'МИН', 'Дата действия': '14.04.2022', 'День рождения': '09.08.1957'}
+        {'Тип сертификата': ' Сведения о перенесенном заболевании COVID-19', 'ФИО': 'МИН', 'Дата действия': '14.04.2022', 'День рождения': '09.08.1957'}
         >>> get_vactination_info('RUS Сертификат COVID-19 Действителен № 1000 0844 1623 0689 Действует до 02.11.2022 Ц******* Е**** И******* Дата рождения: 05.08.1968 Паспорт: 92** ***293 Закрыть')
-        {'ФИО': 'ЦЕИ', 'Дата действия': '02.11.2022', 'День рождения': '05.08.1968'}
+        {'Тип сертификата': ' Сертификат COVID-19', 'ФИО': 'ЦЕИ', 'Дата действия': '02.11.2022', 'День рождения': '05.08.1968'}
     '''
     res = {}
 
-    for key, reg_exp in zip(['ФИО', 'Дата действия', 'День рождения'],
-                   ['[а-я]\*{2,}',
+    for key, reg_exp in zip(['Тип сертификата', 'ФИО', 'Дата действия', 'День рождения'],
+                   ['[А-я ]+ COVID-19',
+                    '[а-я]\*{2,}',
                     'действует [до:]+ [0-9]{2}.[0-9]{2}.[0-9]{4}',
                     'дата рождения: [0-9]{2}.[0-9]{2}.[0-9]{4}']):
         
         try:
-            search_res = re.findall(reg_exp, text.lower())
-
             if key == 'ФИО':
-                search_res = ''.join([i[0] for i in search_res]).upper()
+                res[key] = ''.join([i[0] for i in re.findall(reg_exp, text.lower())]).upper()
             elif key in ['Дата действия', 'День рождения']:
-                search_res = re.findall('[0-9]{2}.[0-9]{2}.[0-9]{4}', search_res[0])[0]
-            
-            res[key] = search_res
+                res[key] = re.findall('[0-9]{2}.[0-9]{2}.[0-9]{4}', re.findall(reg_exp, text.lower())[0])[0]
+            else:
+                res[key] = re.findall(reg_exp, text)[0]
         except:
             logging.error(f'Error while getting {key} from the text: {text}\n{traceback}')
 
@@ -56,16 +54,16 @@ def get_html_text(url: str) -> str:
         'RUS Сведения о перенесенном заболевании COVID-19 Переболел № 8161 0321 2161 6110 Дата выздоровления: 14.04.2021 Действует до: 14.04.2022 м*********** и***** Н******** Паспорт: 92** ***764 Дата рождения: 09.08.1957 Закрыть'
     '''
     driver = webdriver.Chrome(ChromeDriverManager().install())
-    driver.get(url) # аналог страницы браузера Chrome
-    driver.set_page_load_timeout(45)
-    driver.maximize_window()
-    driver.implicitly_wait(2)
 
+    driver.get(url) # аналог страницы браузера Chrome
+    driver.set_page_load_timeout(55)
+    driver.maximize_window()
+    driver.implicitly_wait(5)
     innerText = ' '.join([node.text for node in driver.find_elements_by_class_name("vaccine-result")])
 
     while '\n' in innerText:
         innerText = innerText.replace('\n', ' ')
-
+        
     return innerText
 
 
