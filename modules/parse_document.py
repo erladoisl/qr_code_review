@@ -5,10 +5,8 @@ from typing import Dict
 import requests
 import logging
 import traceback
-import qr_code
-
-api_url_verify = 'https://www.gosuslugi.ru/api/covid-cert/v3/cert/check/'
-api_url_status = 'https://www.gosuslugi.ru/api/covid-cert-checker/v3/cert/status/'
+import modules.qr_code as qr_code
+from modules.config import api_url_verify, api_url_status
 
 logging.basicConfig(filename="logging.log", level=logging.INFO, encoding='utf-8')
 

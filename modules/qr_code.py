@@ -3,55 +3,11 @@
 
 import logging
 import os
-import cv2
-import numpy  as np
 from PIL import Image
 from pyzbar.pyzbar import decode
 from pdf2image import convert_from_path
 
-
 logging.basicConfig(filename="logging.log", level=logging.INFO)
-
-# cкорее всего не нужно будет
-def get_qr_code(file_name, res_file_name: str = 'data\qr.jpg') -> np.ndarray:
-    '''
-        Возвращает участок рисунка с qr-кодом
-    
-        >>> qr_code_file_name = get_qr_code('data\doctest\certificate_covid.jpg')
-        >>> get_text_from_qr_code(Image.open(qr_code_file_name))
-        'https://www.gosuslugi.ru/covid-cert/verify/9160000018951163?lang=ru&ck=198310ac93c58daab87590afc2aa3f95'
-        >>> qr_code_file_name = get_qr_code('data\doctest\perebolel_imunizaciya.jpg')
-        >>> get_text_from_qr_code(Image.open(qr_code_file_name))
-        'https://www.gosuslugi.ru/covid-cert/status/68a72008-53b4-461d-a26b-ad0c5fc4353c?lang=ru'
-    '''
-    # Load imgae, grayscale, Gaussian blur, Otsu's threshold
-    image = cv2.imread(file_name)
-    original = image.copy()
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (9,9), 0)
-    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-
-    # Morph close
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
-    close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
-
-    # Find contours and filter for QR code
-    cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-
-    for c in cnts: 
-        approx = cv2.approxPolyDP(c, 0.04 * cv2.arcLength(c, True), True)
-        x,y,w,h = cv2.boundingRect(approx)
-        ar = w / float(h)
-
-        if len(approx) == 4 and cv2.contourArea(c) > 10000 and (ar > .85 and ar < 1.3):
-            cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 3)
-            ROI = original[y - 10:y + h + 10, x  - 10:x + w + 10]
-            # cv2.imshow('ROI', ROI)
-            cv2.imwrite(res_file_name, ROI)
-            # cv2.waitKey()  
-
-    return res_file_name
 
 
 def get_text_from_qr_code(pil_image):
@@ -107,7 +63,6 @@ if __name__ == '__main__':
 
     for subdir, dirs, files in os.walk(directory):
         for file in files:
-            #print os.path.join(subdir, file)
             filepath = subdir + os.sep + file
 
             if filepath.split('.')[-1] in ['jpg', 'pdf', 'png', 'jfif', 'docx']:
@@ -116,6 +71,3 @@ if __name__ == '__main__':
                 print(parse_file_with_qr_code(filepath))
             else:
                 print(f'Unknown file format: {filepath}')
-
-   
-    # print(parse_file_with_qr_code('data\certifacates\\antitela\\6c1ba0866e006478db187881ea670bfc.jpg'))
