@@ -18,7 +18,8 @@ class QRCodeVerifyHandler(tornado.web.RequestHandler):
     def get(self):
         directory = 'uploads'
 
-        if not os.path.exists(directory): os.makedirs(directory) 
+        if not os.path.exists(directory): 
+            os.makedirs(directory) 
         
         for field_name, files in self.request.files.items():
             for info in files:
@@ -32,3 +33,6 @@ class QRCodeVerifyHandler(tornado.web.RequestHandler):
                 self.write(parse_document(filename))
 
                 os.remove(filename)
+
+        if len(self.request.files) == 0:
+            self.write({'error': 'Необходимо прикрепить документ с qr-кодом'})
