@@ -77,17 +77,6 @@ def get_text_from_qr_code(pil_image):
     return res
 
 
-def get_image(file_name: str):
-    '''
-        Возвращает картинку первой страницы в пдф файле
-
-        >>> img = get_image('data\doctest\certificate_covid.pdf')
-        >>> get_text_from_qr_code(img)
-        'https://www.gosuslugi.ru/covid-cert/verify/9160000018951163?lang=ru&ck=198310ac93c58daab87590afc2aa3f95'
-    '''
-    return convert_from_path(file_name)[0]
-
-
 def parse_file_with_qr_code(file_name: str):
     '''
         Из файла-картинки или пдф файла возвращает текст из qr-кода
@@ -98,8 +87,8 @@ def parse_file_with_qr_code(file_name: str):
         'https://www.gosuslugi.ru/covid-cert/status/e284c129-beb0-4eee-9031-78cdaef16e7a?lang=ru'
         >>> parse_file_with_qr_code('data\certifacates\\\\antitela\\\\6c1ba0866e006478db187881ea670bfc.jpg')
         'https://www.gosuslugi.ru/covid-cert/verify/8161032121616110?lang=ru&ck=96ea7ed4b8c1333bbb4445ca014709cb'
-        >>> parse_file_with_qr_code('data\certifacates\\\\antitela\\\\217b1355df7962f073ec7ee59b7e704d.jfif')
-        'https://www.gosuslugi.ru/covid-cert/verify/8161082131159530?lang=ru&ck=eb757f1207bfce6b8b98e38eac16741d'
+        >>> parse_file_with_qr_code('data\doctest\doc with qr-code.docx')
+        ''
     '''
     if file_name.endswith('.pdf'):
         pil_image = convert_from_path(file_name)[0]
