@@ -101,6 +101,8 @@ def parse_document(file_name: str) -> Dict[str, str]:
     else:
         logging.info('Unable to get url from QR-code')
 
+    logging.info(f'Result: {result}')
+
     return result
 
 

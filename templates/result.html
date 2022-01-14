@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Проверка qr-кода
+{% end %}
+
+{% block content %}
+    <main>  
+        <div class="row g-5">
+          <div class="col-md-7 col-lg-8">
+              <h4 class="mb-3">Результат:</h4>
+              <div class="row g-3">
+                {% if data == {} %}
+                    <h5> Qr-code не распознан </h5>
+                {% end %}
+
+                {% for key in data.keys() %}
+                  <div class="col-12">
+                    <label for="address" class="form-label"> {{ key }} </label>
+                    <input type="text" readonly class="form-control" id="address" placeholder="1234 Main St" required="" value="{{ data[key] }}">
+                    <div class="invalid-feedback">
+                        Please enter your shipping address.
+                    </div>
+                  </div>
+                {% end %}
+              </div>
+    
+              <hr class="my-4">
+    
+            <form class="needs-validation" novalidate="" action="/qrservice/upload" method="get">
+              <button class="w-100 btn btn-primary btn-lg" type="submit">Выбрать другой документ</button>
+            </form>
+          </div>
+        </div>
+      </main>
+{% end %}

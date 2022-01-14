@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Проверка qr-кода
+{% end %}
+
+{% block content %}
+  <h2>Загрузка файла с qr-кодом</h2>
+  <form method="post" enctype="multipart/form-data" action="/qrservice/upload">
+    <hr class="my-4">
+
+    <input type="file" name='file1' class="form-control form-control-sm" name="document" required = 'True'>
+    
+    <hr class="my-4">
+
+    <button type="submit" class="w-100 btn btn-primary btn-lg">Получить информацию по qr-коду</button>
+  </form>
+{% end %}

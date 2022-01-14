@@ -1,4 +1,6 @@
 from modules.handler.QRCodeVerifyHandler import QRCodeVerifyHandler
+from modules.handler.ApiQRCodeVerifyHandler import ApiQRCodeVerifyHandler
+from modules.handler.ResultHandler import ResultHandler
 import json
 import tornado
 import tornado.ioloop
@@ -7,7 +9,9 @@ import os
 import traceback
 
 application = tornado.web.Application([
-    (r"/qrcode/v1/verify", QRCodeVerifyHandler)],
+    (r"/api/qrservice", ApiQRCodeVerifyHandler),
+    (r"/qrservice/upload", QRCodeVerifyHandler),
+    (r"/qrservice/result", ResultHandler)],
  template_path=os.path.join(os.path.dirname(__file__), "templates"),
  static_path=os.path.join(os.path.dirname(__file__), "static"),
  autoreload=True,
