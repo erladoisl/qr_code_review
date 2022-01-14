@@ -53,7 +53,7 @@ def get_vactination_info(url: str) -> Dict[str, str]:
         response = requests.get(api_url)
         status_code = response.status_code
     except:
-        logging.error(f'Cannot get response from url: {api_url}')
+        logging.error(f'Cannot get response from url: {url}')
 
     if status_code == 200:
         try:
@@ -66,7 +66,7 @@ def get_vactination_info(url: str) -> Dict[str, str]:
             for attr in data.get('attrs', {}):
                 res[attr.get('title', 'undefind')] = attr.get('value')
         except:
-            logging.ERROR(f'Unable to get data from json {url}\n{traceback}')
+            logging.error(f'Unable to get data from json {url}\n{traceback}')
 
     return res
 
