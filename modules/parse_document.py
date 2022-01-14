@@ -66,7 +66,7 @@ def get_vactination_info(url: str) -> Dict[str, str]:
             for attr in data.get('attrs', {}):
                 res[attr.get('title', 'undefind')] = attr.get('value')
         except:
-            logging.ERROR(f'Unable to get data from json {response_json}\n{traceback}')
+            logging.ERROR(f'Unable to get data from json {url}\n{traceback}')
 
     return res
 
