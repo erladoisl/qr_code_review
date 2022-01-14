@@ -48,7 +48,7 @@ def parse_file_with_qr_code(file_name: str):
     '''
     if file_name.endswith('.pdf'):
         pil_image = convert_from_path(file_name)[0]
-    elif file_name.split('.')[-1] in ['jpg', 'jfif', 'png']:
+    elif file_name.split('.')[-1].lower() in ['jpg', 'jfif', 'png']:
         pil_image = Image.open(file_name)
     else:
         logging.error('Неизвестный формат файла')
