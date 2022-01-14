@@ -73,14 +73,14 @@ def get_vactination_info(url: str) -> Dict[str, str]:
 
 def is_valid_qr_code(url: str) ->  bool:
     '''
-        Если url начинается с "https://www.gosuslugi.ru/", текст из qr-кода считается валидным
+        Если url начинается с "https://www.gosuslugi.ru/covid-cert/", текст из qr-кода считается валидным
 
         >>> is_valid_qr_code('https://www.gosuslugi.ru/covid-cert/verify/9160000018951163?lang=ru&ck=198310ac93c58daab87590afc2aa3f95')
         True
         >>> is_valid_qr_code('')
         False
     '''
-    return url.startswith('https://www.gosuslugi.ru/')
+    return url.startswith('https://www.gosuslugi.ru/covid-cert/')
 
 
 def parse_document(file_name: str) -> Dict[str, str]:
